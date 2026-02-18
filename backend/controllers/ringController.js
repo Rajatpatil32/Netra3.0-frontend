@@ -1,36 +1,74 @@
-const Ring = require("../models/Ring");
+const { v4: uuidv4 } = require("uuid");
+const RingEvent = require("../models/RingEvent");
+const RingStatusHistory = require("../models/RingStatusHistory");
 
-exports.sendRing = async (req, res) => {
+exports.createRing = async (req, res) => {
   try {
-    const { vehicleId } = req.body;
+    const { phoneNumber, location } = req.body;
 
-    if (!vehicleId) {
-      return res.status(400).json({ message: "Vehicle ID required" });
+    if (!phoneNumber) {
+      return res.status(400).json({ message: "Phone number required" });
     }
 
-    const ring = await Ring.create({ vehicleId });
+    if (!/^[6-9]\d{9}$/.test(phoneNumber)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
 
-    const io = req.app.get("io");
-    io.to(vehicleId).emit("newRing", ring);
-
-    res.status(201).json({
-      message: "Ring sent successfully",
-      ring
+    const ring = await RingEvent.create({
+      ringId: uuidv4(),
+      phoneNumber,
+      location
     });
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(201).json(ring);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-exports.getRings = async (req, res) => {
+exports.getAllRings = async (req, res) => {
   try {
-    const rings = await Ring.find({
-      vehicleId: req.params.vehicleId
-    }).sort({ timestamp: -1 });
+    const rings = await RingEvent.find()
+      .populate("assignedVehicle")
+      .sort({ createdAt: -1 });
 
     res.json(rings);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.updateRingStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const ring = await RingEvent.findById(id);
+
+    if (!ring) {
+      return res.status(404).json({ message: "Ring not found" });
+    }
+
+    const oldStatus = ring.status;
+
+    ring.status = status;
+
+    if (status === "resolved") {
+      ring.resolvedAt = new Date();
+    }
+
+    await ring.save();
+
+    await RingStatusHistory.create({
+      ring: ring._id,
+      oldStatus,
+      newStatus: status
+    });
+
+    res.json(ring);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
