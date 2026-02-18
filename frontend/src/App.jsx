@@ -92,13 +92,28 @@ export default function App() {
     if (ringCooldown) return;
 
     await sendRingRequest();
+
+    // Get existing history
+    const ringHistory =
+      JSON.parse(localStorage.getItem("ringHistory")) || [];
+
+    const newRing = {
+      time: new Date().toLocaleString(),
+      responded: false
+    };
+
+    ringHistory.push(newRing);
+
+    localStorage.setItem("ringHistory", JSON.stringify(ringHistory));
+
     setRingCooldown(true);
-    setContactStatus("Ring sent. Please wait.");
+    setContactStatus("Ring sent. Owner notified.");
 
     let count = 60;
     const interval = setInterval(() => {
       count--;
       setSeconds(count);
+
       if (count === 0) {
         clearInterval(interval);
         setRingCooldown(false);
@@ -107,6 +122,7 @@ export default function App() {
       }
     }, 1000);
   };
+
 
   const sendMessage = () => {
     if (!chatInput.trim()) return;
