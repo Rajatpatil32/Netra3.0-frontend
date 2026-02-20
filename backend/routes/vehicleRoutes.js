@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
+
 const {
-  createVehicle,
-  getVehicles
+  getVehicleByQR
 } = require("../controllers/vehicleController");
 
-router.post("/", createVehicle);
-router.get("/", getVehicles);
+
+// GET vehicle details from QR
+router.get("/:qrId", getVehicleByQR);
+
 
 module.exports = router;

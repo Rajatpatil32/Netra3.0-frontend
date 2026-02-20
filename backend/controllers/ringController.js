@@ -1,74 +1,73 @@
-const { v4: uuidv4 } = require("uuid");
-const RingEvent = require("../models/RingEvent");
-const RingStatusHistory = require("../models/RingStatusHistory");
+const Ring = require("../models/Ring");
+const Vehicle = require("../models/Vehicle");
 
-exports.createRing = async (req, res) => {
+
+// POST /api/ring
+exports.createRingRequest = async (req, res) => {
+
   try {
-    const { phoneNumber, location } = req.body;
 
-    if (!phoneNumber) {
-      return res.status(400).json({ message: "Phone number required" });
+    const { qrId, visitorPhone, message } = req.body;
+
+    if (!qrId || !visitorPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "qrId and visitorPhone required"
+      });
     }
 
-    if (!/^[6-9]\d{9}$/.test(phoneNumber)) {
-      return res.status(400).json({ message: "Invalid phone number" });
+    // find vehicle
+    const vehicle = await Vehicle.findOne({ qrId });
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found"
+      });
     }
 
-    const ring = await RingEvent.create({
-      ringId: uuidv4(),
-      phoneNumber,
-      location
+    // save ring request
+    const ring = await Ring.create({
+      qrId,
+      vehicleNumber: vehicle.vehicleNumber,
+      ownerPhone: vehicle.ownerPhone,
+      visitorPhone,
+      status: "pending",
+      message: message || "Someone is trying to contact you"
     });
 
-    res.status(201).json(ring);
 
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    // 🔔 Here later we send WhatsApp / Push / Socket notification
 
-exports.getAllRings = async (req, res) => {
-  try {
-    const rings = await RingEvent.find()
-      .populate("assignedVehicle")
-      .sort({ createdAt: -1 });
 
-    res.json(rings);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    console.log(`
+NEW RING REQUEST
+Vehicle: ${vehicle.vehicleNumber}
+Owner: ${vehicle.ownerPhone}
+Visitor: ${visitorPhone}
+Message: ${message}
+    `);
 
-exports.updateRingStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
 
-    const ring = await RingEvent.findById(id);
-
-    if (!ring) {
-      return res.status(404).json({ message: "Ring not found" });
-    }
-
-    const oldStatus = ring.status;
-``
-    ring.status = status;
-
-    if (status === "resolved") {
-      ring.resolvedAt = new Date();
-    }
-
-    await ring.save();
-
-    await RingStatusHistory.create({
-      ring: ring._id,
-      oldStatus,
-      newStatus: status
+    res.json({
+      success: true,
+      message: "Owner notified successfully",
+      data: {
+        ringId: ring._id,
+        ownerName: vehicle.ownerName
+      }
     });
 
-    res.json(ring);
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
+  catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+
+  }
+
 };

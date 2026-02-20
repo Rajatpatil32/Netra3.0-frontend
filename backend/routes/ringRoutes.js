@@ -1,13 +1,12 @@
 const express = require("express");
 const router = express.Router();
+
 const {
-  createRing,
-  getAllRings,
-  updateRingStatus
+  createRingRequest
 } = require("../controllers/ringController");
 
-router.post("/", createRing);
-router.get("/", getAllRings);
-router.put("/:id/status", updateRingStatus);
+
+router.post("/", createRingRequest);
+
 
 module.exports = router;
