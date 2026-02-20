@@ -51,7 +51,7 @@ exports.updateRingStatus = async (req, res) => {
     }
 
     const oldStatus = ring.status;
-
+``
     ring.status = status;
 
     if (status === "resolved") {
