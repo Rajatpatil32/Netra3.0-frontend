@@ -13,3 +13,13 @@ use UUID for the device detect
 create ring
 create emergency contact
 fetch user detail
+
+Even more powerful feature: “Parking Alert History”
+
+When someone scans QR, store:
+
+Time
+
+Location (optional)
+
+Contact attempt
