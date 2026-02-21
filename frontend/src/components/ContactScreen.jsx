@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 
 export default function ContactScreen({
@@ -33,11 +34,40 @@ export default function ContactScreen({
     alert("Owner notified. He will contact you soon.");
   };
 
+  /* ================= RING MESSAGE SCREEN ================= */
+
+  if (showPopup) {
+    return (
+      <div className="screen active">
+        <h3>Message Owner</h3>
+
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Write message to vehicle owner..."
+          className="emergency-textarea"
+        />
+
+        <button className="primary" onClick={sendRing}>
+          Send Message
+        </button>
+
+        <button
+          className="secondary"
+          onClick={() => setShowPopup(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  /* ================= MAIN CONTACT SCREEN ================= */
+
   return (
     <div className="screen active">
       <h3>Contact Owner</h3>
 
-      {/* ACTION BUTTONS GROUP */}
       <div className="action-group">
         <button
           className="success"
@@ -62,33 +92,6 @@ export default function ContactScreen({
         </button>
       </div>
 
-      {/* POPUP MESSAGE BOX */}
-      {showPopup && (
-        <div className="popup">
-          <div className="popup-box">
-            <h4>Message to Owner</h4>
-
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter message..."
-            />
-
-            <button className="primary" onClick={sendRing}>
-              Send
-            </button>
-
-            <button
-              className="secondary"
-              onClick={() => setShowPopup(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ACTIVITY PANEL AT BOTTOM */}
       <div className="activity-panel">
         <h3>Activity</h3>
 

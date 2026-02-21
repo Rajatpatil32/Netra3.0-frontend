@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/vehicle", vehicleRoutes);
-app.use("/api/rings", require("./routes/ringRoutes"));
+app.use("/api/ring", require("./routes/ringRoutes"));
 app.use("/api/vehicles", require("./routes/vehicleRoutes"));
 app.use("/api/emergency", emergencyRoutes);
 

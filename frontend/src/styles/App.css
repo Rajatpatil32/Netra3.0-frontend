@@ -16,10 +16,42 @@ body {
   display: block;
 } */
 
+.contact-icons{
+  display:flex;
+  gap:20px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3%;
+}
+
+.icon{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+}
+
+.whatsapp{
+  background:#25D366;
+}
+
+.email{
+  background:#007BFF;
+}
+
+.icon:hover{
+  transform:scale(1.1);
+  transition:.2s;
+}
+
 .app-logo {
-  width: 120px;
+  width: 90px;
   position: sticky;
   top: 10px;
+  bottom: 10px;
   z-index: 100;
   display: block;
   margin: auto;
