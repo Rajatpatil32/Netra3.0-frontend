@@ -10,6 +10,21 @@ body {
     background: #f5f7fa;
 }
 
+/* .app-logo {
+  width: 120px;
+  margin: 0 auto 15px;
+  display: block;
+} */
+
+.app-logo {
+  width: 120px;
+  position: sticky;
+  top: 10px;
+  z-index: 100;
+  display: block;
+  margin: auto;
+}
+
 /* PERFECT CENTERING */
 body {
     display: flex;

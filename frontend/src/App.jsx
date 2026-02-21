@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import "./styles/App.css";
+import logo from "../img/connect_img.png";
 
 import {
   fetchVehicleByQR,
-  verifyVehicleNumber,
-  verifyVisitorPhone,
   sendRingRequest,
   sendEmergencyAlert
 } from "./api/vehicleApi";
@@ -15,6 +14,8 @@ import PhoneScreen from "./components/PhoneScreen";
 import ContactScreen from "./components/ContactScreen";
 import ChatScreen from "./components/ChatScreen";
 import EmergencyScreen from "./components/EmergencyScreen";
+import { registerVehicle } from "./api/vehicleApi";
+import RegisterScreen from "./components/RegisterScreen";
 
 export default function App() {
 
@@ -39,15 +40,35 @@ export default function App() {
   const [emergencyMessage, setEmergencyMessage] = useState("");
   const [emergencyStatus, setEmergencyStatus] = useState("");
 
+
+  const [registerData, setRegisterData] = useState({
+    vehicleNumber: "",
+    ownerName: "",
+    ownerPhone: "",
+    ownerEmail: ""
+  });
+
   const chatExpireRef = useRef(null);
 
   useEffect(() => {
-    async function loadVehicle() {
+  async function loadVehicle() {
+    console.log("useEffect started");
+
+    try {
+      console.log("calling API...");
       const res = await fetchVehicleByQR("demoQR");
+
+      console.log("API response:", res);
+
       setVehicleData(res.data);
+    } catch (err) {
+      console.error("API error:", err);
+      setScreen("register");
     }
-    loadVehicle();
-  }, []);
+  }
+
+  loadVehicle();
+}, []);
 
   if (!vehicleData) return null;
 
@@ -68,61 +89,91 @@ export default function App() {
     else if (screen === "emergency") setScreen("contact");
   };
 
-  const handleVerifyVehicle = async () => {
+  const handleRegister = async () => {
     try {
-      await verifyVehicleNumber(vehicleData.qrId, vehicleInput);
+      const res = await registerVehicle({
+        qrId: "demoQR",
+        ...registerData
+      });
+
+      setVehicleData(res.data);
+      setScreen("vehicle");
+
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  /* ================= VEHICLE VERIFY ================= */
+
+  const handleVerifyVehicle = () => {
+    if (
+      vehicleInput.trim().toUpperCase() ===
+      vehicleData.vehicleNumber.toUpperCase()
+    ) {
       setVehicleStatus("");
       goTo("phone");
-    } catch {
+    } else {
       setVehicleStatus("Vehicle number does not match.");
     }
   };
 
-  const handleVerifyPhone = async () => {
-    try {
-      await verifyVisitorPhone(phone);
+  /* ================= PHONE VERIFY ================= */
+
+  const handleVerifyPhone = () => {
+    if (phone.length === 10) {
       setPhoneStatus("");
       goTo("contact");
-    } catch {
+    } else {
       setPhoneStatus("Enter valid phone number.");
     }
   };
 
-  const ringOwner = async () => {
+  /* ================= RING OWNER ================= */
+
+  const ringOwner = async (message) => {
     if (ringCooldown) return;
 
-    await sendRingRequest();
+    try {
+      await sendRingRequest({
+        qrId: vehicleData.qrId,
+        visitorPhone: phone,
+        message: message
+      });
 
-    // Get existing history
-    const ringHistory =
-      JSON.parse(localStorage.getItem("ringHistory")) || [];
+      const ringHistory =
+        JSON.parse(localStorage.getItem("ringHistory")) || [];
 
-    const newRing = {
-      time: new Date().toLocaleString(),
-      responded: false
-    };
+      const newRing = {
+        time: new Date().toLocaleString(),
+        responded: false
+      };
 
-    ringHistory.push(newRing);
+      ringHistory.push(newRing);
+      localStorage.setItem("ringHistory", JSON.stringify(ringHistory));
 
-    localStorage.setItem("ringHistory", JSON.stringify(ringHistory));
+      setRingCooldown(true);
+      setContactStatus("Ring sent. Owner notified.");
 
-    setRingCooldown(true);
-    setContactStatus("Ring sent. Owner notified.");
+      let count = 60;
+      const interval = setInterval(() => {
+        count--;
+        setSeconds(count);
 
-    let count = 60;
-    const interval = setInterval(() => {
-      count--;
-      setSeconds(count);
+        if (count === 0) {
+          clearInterval(interval);
+          setRingCooldown(false);
+          setSeconds(60);
+          setContactStatus("");
+        }
+      }, 1000);
 
-      if (count === 0) {
-        clearInterval(interval);
-        setRingCooldown(false);
-        setSeconds(60);
-        setContactStatus("");
-      }
-    }, 1000);
+    } catch (err) {
+      setContactStatus(err.message);
+    }
   };
 
+  /* ================= CHAT ================= */
 
   const sendMessage = () => {
     if (!chatInput.trim()) return;
@@ -132,7 +183,7 @@ export default function App() {
       minute: "2-digit"
     });
 
-    setChatMessages((prev) => [
+    setChatMessages(prev => [
       ...prev,
       { text: chatInput, time }
     ]);
@@ -145,18 +196,22 @@ export default function App() {
 
     chatExpireRef.current = setTimeout(() => {
       setChatDisabled(true);
-      setChatMessages((prev) => [
+      setChatMessages(prev => [
         ...prev,
         { text: "Chat expired for privacy.", system: true }
       ]);
     }, 20 * 60 * 1000);
   };
 
+  /* ================= PHOTO ================= */
+
   const handlePhoto = (file) => {
     const reader = new FileReader();
     reader.onload = () => setPhotoPreview(reader.result);
     reader.readAsDataURL(file);
   };
+
+  /* ================= EMERGENCY ================= */
 
   const submitEmergency = async () => {
     if (!photoPreview)
@@ -165,17 +220,25 @@ export default function App() {
     if (!emergencyMessage.trim())
       return setEmergencyStatus("Please enter emergency message.");
 
-    await sendEmergencyAlert({
-      vehicle: vehicleData.vehicleNumber,
-      message: emergencyMessage,
-      photo: photoPreview
-    });
+    try {
+      await sendEmergencyAlert({
+        qrId: vehicleData.qrId,
+        visitorPhone: phone,
+        message: emergencyMessage,
+        photo: photoPreview
+      });
 
-    setEmergencyStatus("Emergency alert sent successfully.");
+      setEmergencyStatus("Emergency alert sent successfully.");
+    } catch (err) {
+      setEmergencyStatus(err.message);
+    }
   };
+
+  /* ================= UI ================= */
 
   return (
     <div className="container">
+      <img src={logo} alt="logo" className="app-logo" />
       <div className="card">
 
         {screen !== "vehicle" && <BackButton onClick={goBack} />}
@@ -227,6 +290,14 @@ export default function App() {
             setEmergencyMessage={setEmergencyMessage}
             submitEmergency={submitEmergency}
             emergencyStatus={emergencyStatus}
+          />
+        )}
+
+        {screen === "register" && (
+          <RegisterScreen
+            form={registerData}
+            setForm={setRegisterData}
+            submit={handleRegister}
           />
         )}
 

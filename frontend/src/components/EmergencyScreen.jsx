@@ -21,7 +21,12 @@ export default function EmergencyScreen({
 
     setLoading(true);
 
-    await submitEmergency();
+    try {
+      await submitEmergency();
+    } catch (err) {
+      setLoading(false);
+      return setStatus(err.message);
+    }
 
     // Store history locally
     const history =

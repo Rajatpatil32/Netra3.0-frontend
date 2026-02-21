@@ -7,6 +7,8 @@ export default function ContactScreen({
   goTo
 }) {
   const [ringHistory, setRingHistory] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const history =
@@ -19,6 +21,18 @@ export default function ContactScreen({
       ? ringHistory[ringHistory.length - 1]
       : null;
 
+  const handleRingClick = async () => {
+    if (ringCooldown) return;
+    setShowPopup(true);
+  };
+
+  const sendRing = async () => {
+    await ringOwner(message);
+    setShowPopup(false);
+    setMessage("");
+    alert("Owner notified. He will contact you soon.");
+  };
+
   return (
     <div className="screen active">
       <h3>Contact Owner</h3>
@@ -27,15 +41,18 @@ export default function ContactScreen({
       <div className="action-group">
         <button
           className="success"
-          onClick={ringOwner}
+          onClick={handleRingClick}
           disabled={ringCooldown}
         >
           {ringCooldown ? `Wait ${seconds}s` : "🔔 Ring Owner"}
         </button>
 
+        {/* Private chat disabled for now */}
+        {/*
         <button className="primary" onClick={() => goTo("chat")}>
           💬 Private Chat
         </button>
+        */}
 
         <button
           className="secondary"
@@ -44,6 +61,32 @@ export default function ContactScreen({
           🚨 Emergency
         </button>
       </div>
+
+      {/* POPUP MESSAGE BOX */}
+      {showPopup && (
+        <div className="popup">
+          <div className="popup-box">
+            <h4>Message to Owner</h4>
+
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Enter message..."
+            />
+
+            <button className="primary" onClick={sendRing}>
+              Send
+            </button>
+
+            <button
+              className="secondary"
+              onClick={() => setShowPopup(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ACTIVITY PANEL AT BOTTOM */}
       <div className="activity-panel">

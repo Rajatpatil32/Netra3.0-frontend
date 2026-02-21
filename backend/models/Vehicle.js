@@ -37,6 +37,11 @@ const vehicleSchema = new mongoose.Schema(
     default: "car"
   },
 
+  isRegistered: {
+    type: Boolean,
+    default: true
+  },
+
   createdAt: {
     type: Date,
     default: Date.now

@@ -1,41 +1,54 @@
+const BASE_URL = "http://localhost:3000/api";
+
+const request = async (url, options = {}) => {
+  const res = await fetch(BASE_URL + url, {
+    headers: { "Content-Type": "application/json" },
+    ...options
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Something went wrong");
+  }
+
+  return data;
+};
+
+// Get vehicle by QR
 export const fetchVehicleByQR = async (qrId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        data: {
-          qrId,
-          vehicleNumber: "MH12AB1234"
-        }
-      });
-    }, 400);
+  const res = await fetch(`/api/vehicle/${qrId}`);
+
+  const data = await res.json();
+
+  // 👇 THIS LINE IS THE FIX
+  if (!res.ok) {
+    throw new Error(data.message);
+  }
+
+  return data;
+};
+
+
+// Register vehicle
+export const registerVehicle = (data) =>
+  request(`/vehicle/register`, {
+    method: "POST",
+    body: JSON.stringify(data)
   });
-};
 
-export const verifyVehicleNumber = async (qrId, vehicleNumber) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (vehicleNumber.toUpperCase() === "MH12AB1234") {
-        resolve({ success: true });
-      } else {
-        reject({ message: "Mismatch" });
-      }
-    }, 400);
+
+// Send ring request
+export const sendRingRequest = (data) =>
+  request(`/ring`, {
+    method: "POST",
+    body: JSON.stringify(data)
   });
-};
 
-export const verifyVisitorPhone = async (phone) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (phone.length === 10) resolve({ success: true });
-      else reject({ message: "Invalid phone" });
-    }, 400);
+
+// Send emergency alert
+export const sendEmergencyAlert = (data) =>
+  request(`/emergency`, {
+    method: "POST",
+    body: JSON.stringify(data)
   });
-};
-
-export const sendRingRequest = async () => {
-  return Promise.resolve({ success: true });
-};
-
-export const sendEmergencyAlert = async (data) => {
-  return Promise.resolve({ success: true });
-};

@@ -19,7 +19,7 @@ export default function VehicleScreen({
         placeholder="Enter full vehicle numberr"
       />
 
-      <button className="primary" onClick={verifyVehicle}>
+      <button className="primary" onClick={() => verifyVehicle(blurredQR, vehicleInput)}>
         Verify
       </button>
 
