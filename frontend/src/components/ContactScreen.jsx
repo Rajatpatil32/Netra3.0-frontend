@@ -5,7 +5,8 @@ export default function ContactScreen({
   ringOwner,
   ringCooldown,
   seconds,
-  goTo
+  goTo,
+  ownerPhone
 }) {
   const [ringHistory, setRingHistory] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
@@ -28,11 +29,18 @@ export default function ContactScreen({
   };
 
   const sendRing = async () => {
-    await ringOwner(message);
-    setShowPopup(false);
-    setMessage("");
-    alert("Owner notified. He will contact you soon.");
-  };
+  if (!message.trim()) return;
+
+  const phone = ownerPhone.replace(/\D/g, "");
+  const text = encodeURIComponent(message);
+
+  window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
+
+  await ringOwner(message);
+
+  setShowPopup(false);
+  setMessage("");
+};
 
   /* ================= RING MESSAGE SCREEN ================= */
 

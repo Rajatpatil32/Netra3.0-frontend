@@ -25,3 +25,6 @@ Location (optional)
 Contact attempt
 
 whatsapp otp register
+
+
+token based inside of qr param
