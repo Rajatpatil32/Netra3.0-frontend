@@ -2,6 +2,8 @@ import React from "react";
 import { useState, useEffect, useRef } from "react";
 import "./styles/App.css";
 import logo from "./connect_img.png";
+import Loader from "./components/Loader";
+import { setLoaderCallback } from "./utils/loader";
 
 import {
   fetchVehicleByQR,
@@ -19,6 +21,8 @@ import { registerVehicle } from "./api/vehicleApi";
 import RegisterScreen from "./components/RegisterScreen";
 
 export default function App() {
+
+  const [loading, setLoading] = useState(false);
 
   const [screen, setScreen] = useState("vehicle");
   const [vehicleData, setVehicleData] = useState(null);
@@ -53,23 +57,31 @@ export default function App() {
 
   const qrId = new URLSearchParams(window.location.search).get("qr");
   useEffect(() => {
+    setLoaderCallback(setLoading);
     async function loadVehicle() {
       console.log("useEffect started");
 
       try {
-        const res = await fetchVehicleByQR(qrId);
+        setLoading(true);
+        const res = await fetchVehicleByQR(qrId == null ? 1 : qrId);
         setVehicleData(res.data);
       } catch (err) {
         console.error("API error:", err);
         setScreen("register");
+      } finally {
+        setLoading(false);
       }
+
     }
 
     loadVehicle();
   }, []);
 
-  if (!vehicleData && screen !== "register")
-    return <div className="loader">Loading...</div>;
+  // if (!vehicleData && screen !== "register")
+  //   return <div className="loader">Loading...</div>;
+
+  // if (loading)
+  //   return <div className="loader">Loading...</div>;
 
   const blurredQR =
     vehicleData?.vehicleNumber?.substring(0, 4) +
@@ -90,6 +102,7 @@ export default function App() {
 
   const handleRegister = async (otp) => {
     try {
+      setLoading(true);
       const res = await registerVehicle({
         qrId,
         otp,
@@ -101,6 +114,8 @@ export default function App() {
 
     } catch (err) {
       alert(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,6 +150,8 @@ export default function App() {
     if (ringCooldown) return;
 
     try {
+      setLoading(true);
+
       await sendRingRequest({
         qrId: vehicleData.qrId,
         visitorPhone: phone,
@@ -170,6 +187,8 @@ export default function App() {
 
     } catch (err) {
       setContactStatus(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -221,6 +240,8 @@ export default function App() {
       return setEmergencyStatus("Please enter emergency message.");
 
     try {
+      setLoading(true);
+
       await sendEmergencyAlert({
         qrId: vehicleData.qrId,
         visitorPhone: phone,
@@ -231,6 +252,8 @@ export default function App() {
       setEmergencyStatus("Emergency alert sent successfully.");
     } catch (err) {
       setEmergencyStatus(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -238,6 +261,7 @@ export default function App() {
 
   return (
     <div className="container">
+      {loading && <Loader />}
       <img src={logo} alt="logo" className="app-logo" />
       <div className="card">
 

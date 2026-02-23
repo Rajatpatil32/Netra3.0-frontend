@@ -1,54 +1,21 @@
-const BASE_URL = "http://localhost:3000/api";
+import api from "./axiosInstance";
 
-const request = async (url, options = {}) => {
-  const res = await fetch(BASE_URL + url, {
-    headers: { "Content-Type": "application/json" },
-    ...options
-  });
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.message || "Something went wrong");
-  }
-
-  return data;
-};
-
-// Get vehicle by QR
-export const fetchVehicleByQR = async (qrId) => {
-  const res = await fetch(`/api/vehicle/${qrId}`);
-
-  const data = await res.json();
-
-  // 👇 THIS LINE IS THE FIX
-  if (!res.ok) {
-    throw new Error(data.message);
-  }
-
-  return data;
-};
+// Fetch vehicle by QR
+export const fetchVehicleByQR = (qrId) =>
+  api.get(`/vehicle/${qrId}`);
 
 
 // Register vehicle
 export const registerVehicle = (data) =>
-  request(`/vehicle/register`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
+  api.post(`/vehicle/register`, data);
 
 
-// Send ring request
+// Ring owner
 export const sendRingRequest = (data) =>
-  request(`/ring`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
+  api.post(`/ring`, data);
 
 
-// Send emergency alert
+// Emergency alert
 export const sendEmergencyAlert = (data) =>
-  request(`/emergency`, {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
+  api.post(`/emergency`, data);

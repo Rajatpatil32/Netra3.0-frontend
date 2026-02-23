@@ -1,0 +1,139 @@
+.loader-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+
+  /* lighter overlay */
+  background: rgba(255, 255, 255, 0.15);
+
+  /* blur effect */
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  z-index:9999;
+}
+
+.loader-text{
+  position:absolute;
+  bottom:-40px;
+
+  font-size:14px;
+  font-weight:500;
+
+  color:#000507;
+
+  letter-spacing:1px;
+
+  animation:pulseText 1.5s ease-in-out infinite;
+
+  text-align:center;
+  width:100%;
+}
+
+@keyframes pulseText{
+  0%{
+    opacity:0.4;
+    transform:translateY(0px);
+  }
+  50%{
+    opacity:1;
+    transform:translateY(-3px);
+  }
+  100%{
+    opacity:0.4;
+    transform:translateY(0px);
+  }
+}
+
+.loader{
+  width:160px;
+  height:160px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(255,255,255,0.03);
+  border-radius:20px;
+
+  backdrop-filter: blur(20px);
+
+  box-shadow:
+    0 0 40px rgba(0,200,255,0.15);
+}
+
+.lloader{
+  width:160px;
+  height:160px;
+  position:relative;
+
+  background: rgba(255,255,255,0.03);
+  border-radius:20px;
+
+  backdrop-filter: blur(20px);
+
+  box-shadow:
+    0 0 40px rgba(0,200,255,0.15);
+}
+
+.loader-img{
+  width:80px;
+  height:80px;
+  z-index:10;
+  position:absolute;
+}
+
+.loader img{
+  width:80px;
+  animation:breathe 1s infinite;
+}
+
+.ring{
+  position:absolute;
+  border-radius:50%;
+}
+
+.ring1{
+  width:160px;
+  height:160px;
+  border:3px solid rgba(0,200,255,0.25);
+  border-top:3px solid rgba(0,200,255,1);
+  animation:rotateCW 2s linear infinite;
+}
+
+.ring2{
+  width:125px;
+  height:125px;
+  border:3px solid rgba(0,200,255,0.25);
+  border-bottom:3px solid rgba(0,200,255,1);
+  animation:rotateCCW 1.2s linear infinite;
+}
+
+.ring3{
+  width:95px;
+  height:95px;
+  border:3px solid rgba(0,200,255,0.25);
+  border-left:3px solid rgba(0,200,255,1);
+  animation:rotateCW 0.8s linear infinite;
+}
+
+@keyframes rotateCW{
+  from{transform:rotate(0)}
+  to{transform:rotate(360deg)}
+}
+
+@keyframes rotateCCW{
+  from{transform:rotate(360deg)}
+  to{transform:rotate(0)}
+}
+
+@keyframes breathe{
+  0%{transform:scale(0.9)}
+  50%{transform:scale(1)}
+  100%{transform:scale(0.9)}
+}
